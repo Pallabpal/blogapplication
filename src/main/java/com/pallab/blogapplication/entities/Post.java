@@ -20,13 +20,15 @@ public class Post {
 
     private String title;
     private String content;
-    private Date addDate;
+    private Date addedDate;
     private String imageName;
 
     @ManyToOne
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
 }
