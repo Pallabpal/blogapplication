@@ -6,14 +6,17 @@ import com.pallab.blogapplication.entities.Post;
 import com.pallab.blogapplication.entities.User;
 import com.pallab.blogapplication.exceptions.ResourceNotFoundException;
 import com.pallab.blogapplication.payloads.PostDto;
+import com.pallab.blogapplication.payloads.PostResponse;
 import com.pallab.blogapplication.repositories.CategoryRepo;
 import com.pallab.blogapplication.repositories.PostRepo;
 import com.pallab.blogapplication.repositories.UserRepo;
 import com.pallab.blogapplication.service.PostService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.sql.SQLOutput;
 import java.util.Date;
 import java.util.List;
@@ -60,23 +63,51 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Post updatePost(PostDto postDto, Integer postId){
-        return  null;
+    public PostDto updatePost(PostDto postDto, Integer postId){
+        Post post = this.postRepo.findById(postId).orElseThrow(()->new ResourceNotFoundException("post","Id",postId));
+        post.setTitle(postDto.getTitle());
+        post.setImageName(postDto.getImageName());
+        post.setContent(postDto.getContent());
+
+       Post updatedPost = this.postRepo.save(post);
+
+       return this.modelMapper.map(updatedPost,PostDto.class);
+
     }
 
     @Override
     public void deletePost(Integer postId){
+       Post post = this.postRepo.findById(postId).orElseThrow(()->new ResourceNotFoundException("post","Id",postId));
+       this.postRepo.delete(post);
+
 
     }
 
     @Override
-    public Post getPostById(Integer postId){
-     return  null;
+    public PostDto getPostById(Integer postId){
+
+        Post post = postRepo.findById(postId).orElseThrow(()->new ResourceNotFoundException("post","Id",postId));
+
+     return  this.modelMapper.map(post,PostDto.class);
     }
 
     @Override
-    public List<Post> getAllPost(){
-        return  null;
+    public PostResponse getAllPost(Integer pageNumber, Integer pageSize){
+
+        Pageable p=  PageRequest.of(pageNumber,pageSize);
+        Page<Post> pagePost = this.postRepo.findAll(p);
+        List<Post>posts = pagePost.getContent();
+
+//        List<Post>posts=this.postRepo.findAll();
+        List<PostDto>postsDto= posts.stream().map((post)->this.modelMapper.map(post,PostDto.class)).collect(Collectors.toList());
+        PostResponse postResponse = new PostResponse();
+        postResponse.setContent(postsDto);
+        postResponse.setPageNumber(pagePost.getNumber());
+        postResponse.setPageSize(pagePost.getSize());
+        postResponse.setTotalPages(pagePost.getTotalPages());
+        postResponse.setTotalElements(pagePost.getTotalElements());
+        postResponse.setLastPage(pagePost.isLast());
+        return postResponse;
     }
 
     @Override
