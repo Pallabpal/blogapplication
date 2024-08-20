@@ -43,7 +43,7 @@ public class PostController {
 
     }
 
-    //get by category
+
     @GetMapping("/category/{categoryId}/posts")
     public ResponseEntity<List<PostDto>> getPostByCategory(@PathVariable Integer categoryId){
         List<PostDto> postDtos = postService.getPostByCategory(categoryId);
